@@ -1,0 +1,6 @@
+Image Captioning Project
+
+1) Project Structure 
+  i] Set up Github repository {git@github.com:manas-kgp112/Image-Captioning.git}.
+  ii] Virtual Environment setup.
+  iii] setup.py / requirements.txt
