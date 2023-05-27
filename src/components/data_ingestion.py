@@ -70,8 +70,8 @@ class DataIngestion:
             train_df = pd.DataFrame(train_data.items(), columns=["Image", "Caption"])
             test_df = pd.DataFrame(test_data.items(), columns=["Image", "Caption"])
 
-            train_df.to_csv(self.ingestion_congig.train_data_path, index=False)
-            test_df.to_csv(self.ingestion_congig.test_data_path, index=False)
+            train_df.to_csv(self.ingestion_congig.train_data_path, index=False, header=True)
+            test_df.to_csv(self.ingestion_congig.test_data_path, index=False, header=True)
             logging.info(f'Train and Test .csv saved at {self.ingestion_congig.train_data_path} and {self.ingestion_congig.test_data_path}')
 
 
