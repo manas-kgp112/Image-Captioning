@@ -166,3 +166,4 @@ cython_debug/
 data/Images
 data/out.zip
 data/data_temp.py
+data/FeatureMaps

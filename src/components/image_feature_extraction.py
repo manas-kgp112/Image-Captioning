@@ -19,13 +19,19 @@ from src.exception import CustomException
 from src.logger import logging
 
 
+# Limiting GPU usage
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=3000)])
+
+
+
 
 '''Image Feature Extraction -> Converts images into feature extracted tensors using pretrained InceptionV3'''
 
 @dataclass
 # ImageFeatureExtractionConfig declares the path to store the pre-processor .pkl file for image feature extraction
 class ImageFeatureExtractionConfig:
-    preprocessor_obj_file_path=os.path.join("data", "image_feature_extractor.pkl")
     batch_size = 16
 
 
@@ -73,6 +79,8 @@ class ImageFeatureExtraction:
     # This function extracts the feature maps using the InceptionV3 built using {initiate_model_building()}
     def extract_feature_maps(self, image_dataset, set_type:str):
         logging.info("Loading feature maps for all images.")
+        if not os.path.exists(os.path.join("data", "FeatureMaps", set_type)):
+            os.makedirs(os.path.join("data", "FeatureMaps", set_type))
         try:
             for image, path in tqdm(image_dataset):
                 batch_features = self.initiate_model_building(image)
@@ -80,7 +88,8 @@ class ImageFeatureExtraction:
                 for bf, p in zip(batch_features, path):
                     path_of_feature = p.numpy().decode("utf-8")
                     save_path = f"data/FeatureMaps/{set_type}/{os.path.basename(path_of_feature)}.npy"
-                    np.save(save_path, bf.numpy())
+                    if not os.path.exists(save_path):
+                        np.save(save_path, bf.numpy())
         except Exception as e:
             raise CustomException(e, sys)
 
@@ -91,29 +100,32 @@ class ImageFeatureExtraction:
     # This function fetches the train.csv and loads the images for tensor processing
     # This is the main function which carries the pipeline, it saves the features maps in required directories
     def initiate_image_processing(self, train_data_path, test_data_path):
-        logging.info("Loading Images.")
-        train_df = pd.read_csv(train_data_path)
-        test_df = pd.read_csv(test_data_path)
-        # loading train/test images/captions
-        train_images = train_df["Image"]
-        test_images = test_df["Image"]
+        try:
+            logging.info("Loading Images.")
+            train_df = pd.read_csv(train_data_path)
+            test_df = pd.read_csv(test_data_path)
+            # loading train/test images/captions
+            train_images = train_df["Image"]
+            test_images = test_df["Image"]
 
-        # creating image_dataset
-        train_image_dataset = tf.data.Dataset.from_tensor_slices(train_images)
-        test_image_dataset = tf.data.Dataset.from_tensor_slices(test_images)
+            # creating image_dataset
+            train_image_dataset = tf.data.Dataset.from_tensor_slices(train_images)
+            test_image_dataset = tf.data.Dataset.from_tensor_slices(test_images)
 
-        # mapping tensor conversion function to TF Dataset
-        train_image_dataset = train_image_dataset.map(
-            self.convert_images_to_tensors,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE
-        ).batch(self.image_feature_extraction_config.batch_size)
+            # mapping tensor conversion function to TF Dataset
+            train_image_dataset = train_image_dataset.map(
+                self.convert_images_to_tensors,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE
+            ).batch(self.image_feature_extraction_config.batch_size)
 
-        test_image_dataset = test_image_dataset.map(
-            self.convert_images_to_tensors,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE
-        ).batch(self.image_feature_extraction_config.batch_size)
+            test_image_dataset = test_image_dataset.map(
+                self.convert_images_to_tensors,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE
+            ).batch(self.image_feature_extraction_config.batch_size)
 
-        # saving feature maps as .npy files
+            # saving feature maps as .npy files
 
-        self.extract_feature_maps(train_image_dataset, "train")
-        self.extract_feature_maps(test_image_dataset, "test")
+            self.extract_feature_maps(train_image_dataset, "train")
+            self.extract_feature_maps(test_image_dataset, "test")
+        except Exception as e:
+            raise CustomException(e, sys)

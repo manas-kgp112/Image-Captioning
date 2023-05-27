@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import sklearn as sk
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 
@@ -12,6 +13,16 @@ from src.exception import CustomException
 # Logging 
 from src.logger import logging
 
+
+# Importing Modules
+from src.components.image_feature_extraction import ImageFeatureExtraction
+
+
+
+# Limiting GPU usage
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=3000)])
 
 
 
@@ -77,7 +88,9 @@ class DataIngestion:
 
             return (
                 self.ingestion_congig.train_data_path,
-                self.ingestion_congig.test_data_path
+                self.ingestion_congig.test_data_path,
+                train_data,
+                test_data
             )
         except Exception as e:
             raise CustomException(e, sys)
@@ -85,5 +98,10 @@ class DataIngestion:
 
 
 if __name__ == "__main__":
+    # data ingestion
     obj = DataIngestion()
-    train_data, test_data = obj.initiate_data_ingestion()
+    train_data, test_data, train_data, test_dict = obj.initiate_data_ingestion()
+
+    # feature map extraction from images
+    image_feature_map_extraction_obj = ImageFeatureExtraction()
+    image_feature_map_extraction_obj.initiate_image_processing(train_data_path=train_data, test_data_path=test_data)
