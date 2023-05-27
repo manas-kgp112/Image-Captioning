@@ -1,6 +1,9 @@
 pandas
 numpy
 seaborn
+pillow
+tqdm
+scikit-learn
 tensorflow
 matplotlib
 -e .
