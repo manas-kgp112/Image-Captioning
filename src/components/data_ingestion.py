@@ -16,6 +16,7 @@ from src.logger import logging
 
 # Importing Modules
 from src.components.image_feature_extraction import ImageFeatureExtraction
+from src.components.caption_encoding import CaptionEncoder
 
 
 
@@ -100,8 +101,12 @@ class DataIngestion:
 if __name__ == "__main__":
     # data ingestion
     obj = DataIngestion()
-    train_data, test_data, train_data, test_dict = obj.initiate_data_ingestion()
+    train_data_path, test_data_path, train_dict, test_dict = obj.initiate_data_ingestion()
 
     # feature map extraction from images
     image_feature_map_extraction_obj = ImageFeatureExtraction()
-    image_feature_map_extraction_obj.initiate_image_processing(train_data_path=train_data, test_data_path=test_data)
+    image_feature_map_extraction_obj.initiate_image_processing(train_data_path=train_data_path, test_data_path=test_data_path)
+
+    # encoding captions
+    caption_encoder_obj = CaptionEncoder()
+    train_data, test_data = caption_encoder_obj.initiate_caption_encoding(train_dict=train_dict, test_dict=test_dict)

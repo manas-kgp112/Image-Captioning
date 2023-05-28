@@ -62,8 +62,10 @@ class ImageFeatureExtraction:
         
 
     # This function builds InceptionV3 model to load input and output layers for our extracted image features
-    def initiate_model_building(self, image):
-        logging.info("Building InceptionV3 for feature map processing.")
+    def initiate_model_building(self, image, print_logging=True):
+        if print_logging:
+            logging.info("Building InceptionV3 for feature map processing.")
+
         try:
             model = keras.applications.InceptionV3(include_top=False, weights="imagenet")
             model_input_layer = model.input
@@ -83,7 +85,7 @@ class ImageFeatureExtraction:
             os.makedirs(os.path.join("data", "FeatureMaps", set_type))
         try:
             for image, path in tqdm(image_dataset):
-                batch_features = self.initiate_model_building(image)
+                batch_features = self.initiate_model_building(image, print_logging=False)
                 batch_features = tf.reshape(batch_features, (batch_features.shape[0], -1, batch_features.shape[3]))
                 for bf, p in zip(batch_features, path):
                     path_of_feature = p.numpy().decode("utf-8")
